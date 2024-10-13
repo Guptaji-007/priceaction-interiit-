@@ -80,6 +80,8 @@ def analyze_stock(symbol):
         previous_candle = stock_data.iloc[i - 1]
 
         patterns_detected = []
+
+        # Check for various patterns
         if hammer(current_candle, stock_data['Support'].iloc[i], stock_data['Resistance'].iloc[i]):
             patterns_detected.append('Hammer')
 
@@ -102,20 +104,28 @@ def analyze_stock(symbol):
             patterns_detected.append('Bearish Engulfing')
 
         if patterns_detected:
-            # Track next 10 candles
-            next_candles = stock_data.iloc[i+1:i+10]  # Get next 10 candles
-            next_close_values = next_candles['Close'].tolist()  # Get their close values
+            # Track next 10 candles, if available
+            next_candles = stock_data.iloc[i+1:i+11]  # Get the next 10 candles if they exist
+            
+            # If fewer than 10 candlesticks exist, take what is available
+            if len(next_candles) > 0:
+                next_close_value = next_candles['Close'].iloc[-1]  # Get the last close value of the available next candles
+            else:
+                next_close_value = None  # No further data available
             
             results.append({
                 'Date': current_candle.name.date(),
                 'Patterns Detected': ', '.join(patterns_detected),
                 'Open': current_candle['Open'],
                 'Close': current_candle['Close'],
-                'Next Close Value after 10 candlesticks': next_close_values[-1] if len(next_close_values) > 0 else None  # add the last close value
+                'Next Close Value after 10 candlesticks': next_close_value
             })
 
+    # Convert results to DataFrame
     results_df = pd.DataFrame(results)
+
     return results_df
+
 
 symbol = "MARUTI.NS"  
 pattern_results = analyze_stock(symbol)
